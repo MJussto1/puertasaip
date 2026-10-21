@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Administración — Aeropuerto</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f4f6fa;
+      color: #1e2a3a;
+    }
+
+    /* --- LOGIN --- */
+    #loginView {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .login-card {
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+      width: 380px;
+    }
+    .login-card h1 {
+      font-size: 1.5em;
+      margin-bottom: 6px;
+      color: #004a99;
+    }
+    .login-card p.subtitle {
+      color: #6a7a8a;
+      margin-bottom: 24px;
+      font-size: 0.9em;
+    }
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      font-size: 0.85em;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #4a5a6a;
+    }
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid #d0d8e0;
+      border-radius: 8px;
+      font-size: 1em;
+      outline: none;
+      transition: border 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus {
+      border-color: #004a99;
+    }
+    .btn {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-primary {
+      background: #004a99;
+      color: white;
+      width: 100%;
+    }
+    .btn-primary:hover { background: #003a7a; }
+    .btn-secondary {
+      background: #e8eef5;
+      color: #004a99;
+    }
+    .btn-secondary:hover { background: #d8e2ef; }
+    .btn-danger {
+      background: #d9534f;
+      color: white;
+    }
+    .btn-danger:hover { background: #c9302c; }
+    .btn-sm { padding: 6px 12px; font-size: 0.85em; }
+
+    .error-msg {
+      color: #d9534f;
+      font-size: 0.9em;
+      margin-top: 10px;
+      min-height: 20px;
+    }
+
+    /* --- PANEL --- */
+    #panelView { display: none; }
+    .topbar {
+      background: #004a99;
+      color: white;
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .topbar h1 { font-size: 1.2em; }
+    .topbar .user-info {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 0.9em;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 24px auto;
+      padding: 0 20px;
+    }
+
+    .toolbar {
+      background: white;
+      padding: 18px 20px;
+      border-radius: 10px;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .toolbar label {
+      font-size: 0.9em;
+      font-weight: 600;
+      color: #4a5a6a;
+    }
+    .toolbar select {
+      padding: 8px 12px;
+      border: 1px solid #d0d8e0;
+      border-radius: 6px;
+      font-size: 0.95em;
+    }
+    .toolbar .spacer { flex: 1; }
+
+    .vuelos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 16px;
+    }
+
+    .vuelo-card {
+      background: white;
+      border-radius: 10px;
+      padding: 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      border-left: 5px solid #004a99;
+    }
+    .vuelo-card .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .vuelo-card .num-vuelo {
+      font-size: 1.25em;
+      font-weight: 700;
+      color: #004a99;
+    }
+    .vuelo-card .destino {
+      font-size: 1.05em;
+      margin: 4px 0 12px 0;
+      color: #2a3a4a;
+    }
+    .vuelo-card .info-row {
+      font-size: 0.88em;
+      color: #5a6a7a;
+      margin: 4px 0;
+    }
+    .vuelo-card .acciones {
+      margin-top: 14px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75em;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: white;
+    }
+    .badge.PROGRAMADO { background: #2962ff; }
+    .badge.EMBARQUE { background: #00c853; }
+    .badge.RETRASADO { background: #ff6d00; }
+    .badge.CANCELADO { background: #d50000; }
+    .badge.ULTIMA_LLAMADA { background: #9c27b0; }
+    .badge.DESPEGADO { background: #607d8b; }
+
+    /* --- MODAL --- */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: white;
+      border-radius: 12px;
+      padding: 28px;
+      width: 90%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal h2 {
+      margin-bottom: 20px;
+      color: #004a99;
+      font-size: 1.25em;
+    }
+    .modal .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .modal .acciones {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #8a9aaa;
+      background: white;
+      border-radius: 10px;
+    }
+    .empty-state .icon { font-size: 3em; margin-bottom: 10px; }
+
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 14px 20px;
+      background: #2a3a4a;
+      color: white;
+      border-radius: 8px;
+      font-size: 0.9em;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s;
+      pointer-events: none;
+      z-index: 200;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+    #toast.success { background: #00a84f; }
+    #toast.error { background: #d9534f; }
+  </style>
+</head>
+<body>
+
+  <!-- ============ VISTA LOGIN ============ -->
+  <div id="loginView">
+    <div class="login-card">
+      <h1>Panel de Aeropuerto</h1>
+      <p class="subtitle">Control de puertas y vuelos</p>
+      <div class="form-group">
+        <label>Usuario</label>
+        <input id="username" type="text" placeholder="Tu usuario" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input id="password" type="password" placeholder="Tu contraseña" autocomplete="current-password"
+               onkeydown="if(event.key==='Enter') login()">
+      </div>
+      <button class="btn btn-primary" onclick="login()">Entrar</button>
+      <div id="loginError" class="error-msg"></div>
+    </div>
+  </div>
+
+  <!-- ============ VISTA PANEL ============ -->
+  <div id="panelView">
+    <div class="topbar">
+      <h1>🛫 Panel de Control</h1>
+      <div class="user-info">
+        <span>👤 <b id="currentUser"></b></span>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;"
+                onclick="logout()">Salir</button>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="toolbar">
+        <label>Puerta:</label>
+        <select id="filtroPuerta" onchange="cargarVuelos()">
+          <option value="1">Puerta 1</option>
+          <option value="2">Puerta 2</option>
+          <option value="3">Puerta 3</option>
+          <option value="4">Puerta 4</option>
+          <option value="5">Puerta 5</option>
+        </select>
+        <span class="spacer"></span>
+        <button class="btn btn-secondary" onclick="abrirModalNuevo()">+ Nuevo vuelo</button>
+        <button class="btn btn-secondary" onclick="cargarVuelos()">🔄 Refrescar</button>
+      </div>
+
+      <div id="listaVuelos" class="vuelos-grid"></div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL NUEVO/EDITAR ============ -->
+  <div id="modalVuelo" class="modal-overlay">
+    <div class="modal">
+      <h2 id="modalTitulo">Nuevo vuelo</h2>
+      <input type="hidden" id="vueloId">
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nº de vuelo</label>
+          <input id="f_numero" placeholder="AV123">
+        </div>
+        <div class="form-group">
+          <label>Aerolínea</label>
+          <input id="f_aerolinea" placeholder="Avianca">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>URL del logo</label>
+        <input id="f_logo" placeholder="https://...logo.png">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Origen</label>
+          <input id="f_origen" placeholder="Ciudad de México">
+        </div>
+        <div class="form-group">
+          <label>Destino</label>
+          <input id="f_destino" placeholder="Bogotá">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Fecha</label>
+          <input id="f_fecha" type="date">
+        </div>
+        <div class="form-group">
+          <label>Puerta</label>
+          <select id="f_puerta">
+            <option value="1">Puerta 1</option>
+            <option value="2">Puerta 2</option>
+            <option value="3">Puerta 3</option>
+            <option value="4">Puerta 4</option>
+            <option value="5">Puerta 5</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Hora programada</label>
+          <input id="f_hora_prog" type="time">
+        </div>
+        <div class="form-group">
+          <label>Hora estimada</label>
+          <input id="f_hora_est" type="time">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Estado</label>
+        <select id="f_estado">
+          <option value="PROGRAMADO">Programado</option>
+          <option value="EMBARQUE">Embarque</option>
+          <option value="RETRASADO">Retrasado</option>
+          <option value="ULTIMA_LLAMADA">Última llamada</option>
+          <option value="CANCELADO">Cancelado</option>
+          <option value="DESPEGADO">Despegado</option>
+        </select>
+      </div>
+
+      <div class="acciones">
+        <button class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+        <button class="btn btn-primary" style="width:auto;" onclick="guardarVuelo()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
