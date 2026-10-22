@@ -12,47 +12,115 @@
       background: #0a0e1a;
       color: white;
       min-height: 100vh;
-      padding: 30px 40px;
+      padding: 20px 40px 60px 40px;  /* espacio para footer fijo */
       overflow-x: hidden;
     }
 
-    /* Encabezado de la puerta */
-    .header {
-      display: flex;
-      justify-content: space-between;
+    /* ==================== HEADER SUPERIOR ==================== */
+    /* NUEVO: fila con logo a la izquierda + título centrado + reloj a la derecha */
+    .header-superior {
+      display: grid;
+      grid-template-columns: 220px 1fr 260px;
       align-items: center;
-      border-bottom: 4px solid #00a8e8;
-      padding-bottom: 20px;
-      margin-bottom: 30px;
+      gap: 20px;
+      padding-bottom: 18px;
+      border-bottom: 3px solid #1a2438;
+      margin-bottom: 24px;
     }
-    .header .puerta {
-      font-size: 3.5em;
+
+    /* Logo del aeropuerto (izquierda) */
+    .logo-aeropuerto {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    .logo-aeropuerto img {
+      max-height: 80px;
+      max-width: 200px;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 8px rgba(0, 168, 232, 0.3));
+    }
+    .logo-aeropuerto .placeholder {
+      font-size: 1.2em;
       font-weight: 800;
       color: #00a8e8;
       letter-spacing: 2px;
+      text-align: center;
+      line-height: 1.2;
     }
-    .header .puerta small {
-      display: block;
-      font-size: 0.3em;
-      font-weight: 400;
-      color: #8aa8c8;
-      letter-spacing: 4px;
+
+    /* Título central del aeropuerto */
+    .titulo-aeropuerto {
+      text-align: center;
+    }
+    .titulo-aeropuerto h1 {
+      font-size: 1.5em;
+      font-weight: 700;
+      color: #e0e8f0;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .titulo-aeropuerto p {
+      font-size: 0.85em;
+      color: #7a8ea8;
+      letter-spacing: 3px;
       margin-top: 4px;
+      text-transform: uppercase;
     }
-    .header .reloj {
-      font-size: 2.2em;
+
+    /* Reloj (derecha) */
+    .header-superior .reloj {
+      font-size: 2em;
       font-weight: 600;
       color: #e0e8f0;
       text-align: right;
+      line-height: 1.1;
     }
-    .header .reloj small {
+    .header-superior .reloj small {
       display: block;
       font-size: 0.4em;
       color: #8aa8c8;
       letter-spacing: 2px;
+      margin-top: 6px;
     }
 
-    /* Cabecera de columnas */
+    /* ==================== BLOQUE DE PUERTA (CENTRADO) ==================== */
+    /* NUEVO: la puerta ahora ocupa una franja central destacada */
+    .bloque-puerta {
+      text-align: center;
+      background: linear-gradient(135deg, #0f1a2e 0%, #1a2842 100%);
+      border: 2px solid #00a8e8;
+      border-radius: 16px;
+      padding: 18px 40px;
+      margin-bottom: 28px;
+      display: inline-block;
+      width: 100%;
+      box-shadow: 0 0 40px rgba(0, 168, 232, 0.15);
+    }
+    .bloque-puerta .puerta-numero {
+      font-size: 4em;
+      font-weight: 900;
+      color: #00d4ff;
+      letter-spacing: 4px;
+      line-height: 1;
+      text-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+    }
+    .bloque-puerta .puerta-label {
+      font-size: 0.9em;
+      color: #8aa8c8;
+      letter-spacing: 8px;
+      margin-top: 8px;
+      text-transform: uppercase;
+    }
+    .bloque-puerta .puerta-label-es {
+      font-size: 1.1em;
+      color: #00a8e8;
+      font-weight: 700;
+      letter-spacing: 6px;
+      margin-bottom: 4px;
+    }
+
+    /* ==================== CABECERA DE COLUMNAS ==================== */
     .columnas-header {
       display: grid;
       grid-template-columns: 140px 1fr 140px 140px 200px;
@@ -67,7 +135,7 @@
       margin-bottom: 16px;
     }
 
-    /* Tarjeta de vuelo */
+    /* ==================== TARJETA DE VUELO ==================== */
     .vuelo {
       display: grid;
       grid-template-columns: 140px 1fr 140px 140px 200px;
@@ -104,6 +172,7 @@
       font-size: 0.7em;
       color: #5a6a88;
       text-align: center;
+      padding: 4px;
     }
 
     .vuelo .destino {
@@ -184,7 +253,6 @@
       50% { opacity: 0.6; }
     }
 
-    /* Sin vuelos */
     .sin-vuelos {
       text-align: center;
       padding: 100px 20px;
@@ -197,7 +265,7 @@
       letter-spacing: 2px;
     }
 
-    /* Footer */
+    /* ==================== FOOTER ==================== */
     .footer {
       position: fixed;
       bottom: 0;
@@ -228,17 +296,42 @@
 </head>
 <body>
 
-  <div class="header">
-    <div class="puerta">
-      PUERTA <span id="numPuerta">--</span>
-      <small>GATE</small>
+  <!-- ======================================================= -->
+  <!-- HEADER: LOGO (izq) + TÍTULO (centro) + RELOJ (der)      -->
+  <!-- ======================================================= -->
+  <div class="header-superior">
+    <!-- NUEVO: logo del aeropuerto a la izquierda -->
+    <div class="logo-aeropuerto">
+      <img src="/logos/AEROPUERTO.png" alt="Logo Aeropuerto"
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+      <div class="placeholder" style="display:none;">✈</div>
     </div>
+
+    <!-- NUEVO: título completo del aeropuerto, centrado -->
+    <div class="titulo-aeropuerto">
+      <h1>Aeropuerto Internacional de Puebla</h1>
+      <p>Puebla International Airport</p>
+    </div>
+
+    <!-- Reloj a la derecha -->
     <div class="reloj">
       <span id="reloj">--:--:--</span>
       <small id="fechaHoy">--</small>
     </div>
   </div>
 
+  <!-- ======================================================= -->
+  <!-- BLOQUE DE PUERTA (CENTRADO Y DESTACADO)                 -->
+  <!-- ======================================================= -->
+  <div class="bloque-puerta">
+    <div class="puerta-label-es">PUERTA</div>
+    <div class="puerta-numero" id="numPuerta">--</div>
+    <div class="puerta-label">GATE</div>
+  </div>
+
+  <!-- ======================================================= -->
+  <!-- CABECERA DE COLUMNAS                                    -->
+  <!-- ======================================================= -->
   <div class="columnas-header">
     <div>Aerolínea</div>
     <div>Destino / Destination</div>
@@ -251,8 +344,11 @@
     <div class="sin-vuelos">Cargando... / Loading...</div>
   </div>
 
+  <!-- ======================================================= -->
+  <!-- FOOTER                                                  -->
+  <!-- ======================================================= -->
   <div class="footer">
-    <div>Aeropuerto Internacional · International Airport</div>
+    <div>Aeropuerto Internacional de Puebla · Puebla International Airport</div>
     <div class="conexion">
       <span class="dot" id="dotConexion"></span>
       <span id="estadoConexion">Conectado / Connected</span>
@@ -385,16 +481,12 @@
       document.getElementById('estadoConexion').textContent = 'Desconectado / Disconnected';
     });
 
-    // Escuchar actualizaciones de esta puerta
     socket.on(`puerta-${puertaId}`, (data) => {
       console.log('Actualización recibida:', data);
       cargarVuelos();
     });
 
-    // Respaldo: recargar cada 60s por si el socket falla
     setInterval(cargarVuelos, 60000);
-
-    // Carga inicial
     cargarVuelos();
   </script>
 </body>
