@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pantalla de Puerta</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0a0e1a;
+      color: white;
+      min-height: 100vh;
+      padding: 30px 40px;
+      overflow-x: hidden;
+    }
+
+    /* Encabezado de la puerta */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 4px solid #00a8e8;
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    .header .puerta {
+      font-size: 3.5em;
+      font-weight: 800;
+      color: #00a8e8;
+      letter-spacing: 2px;
+    }
+    .header .puerta small {
+      display: block;
+      font-size: 0.3em;
+      font-weight: 400;
+      color: #8aa8c8;
+      letter-spacing: 4px;
+      margin-top: 4px;
+    }
+    .header .reloj {
+      font-size: 2.2em;
+      font-weight: 600;
+      color: #e0e8f0;
+      text-align: right;
+    }
+    .header .reloj small {
+      display: block;
+      font-size: 0.4em;
+      color: #8aa8c8;
+      letter-spacing: 2px;
+    }
+
+    /* Cabecera de columnas */
+    .columnas-header {
+      display: grid;
+      grid-template-columns: 140px 1fr 140px 140px 200px;
+      gap: 20px;
+      padding: 12px 24px;
+      background: #151c2e;
+      border-radius: 8px;
+      font-size: 0.85em;
+      color: #7a8ea8;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    /* Tarjeta de vuelo */
+    .vuelo {
+      display: grid;
+      grid-template-columns: 140px 1fr 140px 140px 200px;
+      gap: 20px;
+      align-items: center;
+      background: #131a2b;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 16px;
+      border-left: 6px solid #00a8e8;
+      animation: fadeIn 0.4s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .vuelo .logo {
+      width: 120px;
+      height: 70px;
+      object-fit: contain;
+      background: white;
+      border-radius: 8px;
+      padding: 6px;
+    }
+    .vuelo .logo-placeholder {
+      width: 120px;
+      height: 70px;
+      background: #2a3450;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7em;
+      color: #5a6a88;
+      text-align: center;
+    }
+
+    .vuelo .destino {
+      font-size: 2em;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.1;
+    }
+    .vuelo .destino .bilingue {
+      font-size: 0.5em;
+      color: #8aa8c8;
+      font-weight: 400;
+      margin-top: 6px;
+      letter-spacing: 1px;
+    }
+    .vuelo .num-vuelo {
+      font-size: 1.4em;
+      font-weight: 700;
+      color: #00d4ff;
+    }
+    .vuelo .num-vuelo small {
+      display: block;
+      font-size: 0.5em;
+      color: #8aa8c8;
+      font-weight: 400;
+      letter-spacing: 1px;
+      margin-top: 4px;
+    }
+
+    .vuelo .horas {
+      font-size: 1.1em;
+      line-height: 1.6;
+    }
+    .vuelo .horas .label {
+      font-size: 0.7em;
+      color: #8aa8c8;
+      letter-spacing: 1px;
+    }
+    .vuelo .horas .valor {
+      font-size: 1.6em;
+      font-weight: 700;
+      color: #ffffff;
+    }
+    .vuelo .horas .estimado {
+      font-size: 1.6em;
+      font-weight: 700;
+    }
+    .vuelo .horas .estimado.delay { color: #ff9800; }
+
+    /* Estado */
+    .vuelo .estado {
+      padding: 14px 20px;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 1.1em;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: white;
+    }
+    .vuelo .estado small {
+      display: block;
+      font-size: 0.6em;
+      font-weight: 400;
+      letter-spacing: 1px;
+      margin-top: 4px;
+      opacity: 0.85;
+    }
+    .estado.PROGRAMADO { background: #2962ff; }
+    .estado.EMBARQUE { background: #00c853; }
+    .estado.RETRASADO { background: #ff6d00; }
+    .estado.CANCELADO { background: #d50000; }
+    .estado.ULTIMA_LLAMADA { background: #9c27b0; animation: pulse 1.2s infinite; }
+    .estado.DESPEGADO { background: #607d8b; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    /* Sin vuelos */
+    .sin-vuelos {
+      text-align: center;
+      padding: 100px 20px;
+      color: #4a5a78;
+      font-size: 2em;
+    }
+    .sin-vuelos .bilingue {
+      font-size: 0.6em;
+      margin-top: 12px;
+      letter-spacing: 2px;
+    }
+
+    /* Footer */
+    .footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #0a0e1a;
+      border-top: 2px solid #1a2438;
+      padding: 12px 40px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8em;
+      color: #5a6a88;
+      letter-spacing: 1px;
+    }
+    .conexion {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .conexion .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #00c853;
+    }
+    .conexion .dot.offline { background: #d50000; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="puerta">
+      PUERTA <span id="numPuerta">--</span>
+      <small>GATE</small>
+    </div>
+    <div class="reloj">
+      <span id="reloj">--:--:--</span>
+      <small id="fechaHoy">--</small>
+    </div>
+  </div>
+
+  <div class="columnas-header">
+    <div>Aerolínea</div>
+    <div>Destino / Destination</div>
+    <div>Vuelo / Flight</div>
+    <div>Hora / Time</div>
+    <div>Estado / Status</div>
+  </div>
+
+  <div id="vuelosContainer">
+    <div class="sin-vuelos">Cargando... / Loading...</div>
+  </div>
+
+  <div class="footer">
+    <div>Aeropuerto Internacional · International Airport</div>
+    <div class="conexion">
+      <span class="dot" id="dotConexion"></span>
+      <span id="estadoConexion">Conectado / Connected</span>
+    </div>
+  </div>
+
+  <script>
+    // ==================== CONFIG ====================
+    const params = new URLSearchParams(window.location.search);
+    const puertaId = params.get('puerta') || '1';
+    document.getElementById('numPuerta').textContent = puertaId;
+
+    const socket = io();
+    let vuelosActuales = [];
+
+    // ==================== RELOJ ====================
+    function actualizarReloj() {
+      const ahora = new Date();
+      const hh = String(ahora.getHours()).padStart(2, '0');
+      const mm = String(ahora.getMinutes()).padStart(2, '0');
+      const ss = String(ahora.getSeconds()).padStart(2, '0');
+      document.getElementById('reloj').textContent = `${hh}:${mm}:${ss}`;
+
+      const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+      const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+      document.getElementById('fechaHoy').textContent =
+        `${dias[ahora.getDay()]}, ${ahora.getDate()} ${meses[ahora.getMonth()]} ${ahora.getFullYear()}`;
+    }
+    setInterval(actualizarReloj, 1000);
+    actualizarReloj();
+
+    // ==================== TRADUCCIONES ====================
+    const estadosBilingues = {
+      PROGRAMADO:      { es: 'Programado',     en: 'Scheduled' },
+      EMBARQUE:        { es: 'Embarque',       en: 'Boarding' },
+      RETRASADO:       { es: 'Retrasado',      en: 'Delayed' },
+      ULTIMA_LLAMADA:  { es: 'Última llamada', en: 'Final Call' },
+      CANCELADO:       { es: 'Cancelado',      en: 'Cancelled' },
+      DESPEGADO:       { es: 'Despegado',      en: 'Departed' }
+    };
+
+    function formatearHora(hora) {
+      if (!hora) return '--:--';
+      return String(hora).slice(0, 5);
+    }
+
+    // ==================== RENDERIZADO ====================
+    function renderizar() {
+      const container = document.getElementById('vuelosContainer');
+
+      if (vuelosActuales.length === 0) {
+        container.innerHTML = `
+          <div class="sin-vuelos">
+            Sin vuelos programados
+            <div class="bilingue">NO SCHEDULED FLIGHTS</div>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = vuelosActuales.map(v => {
+        const estado = estadosBilingues[v.estado] || { es: v.estado, en: v.estado };
+        const horaProg = formatearHora(v.hora_programada);
+        const horaEst = formatearHora(v.hora_estimada || v.hora_programada);
+        const hayRetraso = v.hora_estimada && formatearHora(v.hora_estimada) !== formatearHora(v.hora_programada);
+
+        const logoHtml = v.aerolinea_logo_url
+          ? `<img class="logo" src="${v.aerolinea_logo_url}" alt="${v.aerolinea_nombre}"
+                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+             <div class="logo-placeholder" style="display:none;">${v.aerolinea_nombre}</div>`
+          : `<div class="logo-placeholder">${v.aerolinea_nombre}</div>`;
+
+        return `
+          <div class="vuelo">
+            <div>${logoHtml}</div>
+            <div class="destino">
+              ${v.destino}
+              <div class="bilingue">DESTINATION</div>
+            </div>
+            <div class="num-vuelo">
+              ${v.numero_vuelo}
+              <small>FLIGHT</small>
+            </div>
+            <div class="horas">
+              <div class="label">PROGRAMADO / SCHEDULED</div>
+              <div class="valor">${horaProg}</div>
+              ${v.hora_estimada ? `
+                <div class="label" style="margin-top:8px;">ESTIMADO / ESTIMATED</div>
+                <div class="estimado ${hayRetraso ? 'delay' : ''}">${horaEst}</div>
+              ` : ''}
+            </div>
+            <div class="estado ${v.estado}">
+              ${estado.es}
+              <small>${estado.en}</small>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ==================== CARGA DE DATOS ====================
+    async function cargarVuelos() {
+      try {
+        const res = await fetch(`/api/puertas/${puertaId}/vuelos`);
+        if (!res.ok) throw new Error('Error HTTP ' + res.status);
+        vuelosActuales = await res.json();
+        renderizar();
+      } catch (err) {
+        console.error('Error al cargar vuelos:', err);
+        document.getElementById('vuelosContainer').innerHTML = `
+          <div class="sin-vuelos">
+            Error de conexión
+            <div class="bilingue">CONNECTION ERROR</div>
+          </div>`;
+      }
+    }
+
+    // ==================== WEBSOCKET ====================
+    socket.on('connect', () => {
+      console.log('Socket conectado');
+      document.getElementById('dotConexion').classList.remove('offline');
+      document.getElementById('estadoConexion').textContent = 'Conectado / Connected';
+      socket.emit('suscribir-puerta', puertaId);
+      cargarVuelos();
+    });
+
+    socket.on('disconnect', () => {
+      console.log('Socket desconectado');
+      document.getElementById('dotConexion').classList.add('offline');
+      document.getElementById('estadoConexion').textContent = 'Desconectado / Disconnected';
+    });
+
+    // Escuchar actualizaciones de esta puerta
+    socket.on(`puerta-${puertaId}`, (data) => {
+      console.log('Actualización recibida:', data);
+      cargarVuelos();
+    });
+
+    // Respaldo: recargar cada 60s por si el socket falla
+    setInterval(cargarVuelos, 60000);
+
+    // Carga inicial
+    cargarVuelos();
+  </script>
+</body>
+</html>
